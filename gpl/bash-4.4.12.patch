@@ -1,0 +1,28 @@
+diff -r -u bash-4.4.12/y.tab.c workdir/bash-4.4.12/y.tab.c
+--- bash-4.4.12/y.tab.c	2017-12-22 15:31:11.000000000 +0900
++++ workdir/bash-4.4.12/y.tab.c	2017-12-22 15:31:57.000000000 +0900
+@@ -177,7 +177,12 @@
+ extern int bash_input_fd_changed;
+ #endif
+ 
++#ifdef ANDROID
++#include <errno.h>
++#else
+ extern int errno;
++#endif
++
+ /* **************************************************************** */
+ /*								    */
+ /*		    "Forward" declarations			    */
+diff -r -u bash-4.4.12/support/Makefile.in workdir/bash-4.4.12/support/Makefile.in
+--- bash-4.4.12/support/Makefile.in	2017-12-22 15:51:56.000000000 +0900
++++ workdir/bash-4.4.12/support/Makefile.in	2017-12-22 15:52:19.000000000 +0900
+@@ -52,7 +52,7 @@
+ LOCAL_DEFS = @LOCAL_DEFS@
+ 
+ LIBS = @LIBS@
+-LIBS_FOR_BUILD = ${LIBS}		# XXX
++LIBS_FOR_BUILD = 
+ 
+ LOCAL_LDFLAGS = @LOCAL_LDFLAGS@
+ LDFLAGS = @LDFLAGS@ $(LOCAL_LDFLAGS) $(CFLAGS)

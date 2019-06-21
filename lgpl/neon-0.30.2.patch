@@ -1,0 +1,12 @@
+diff -u -r neon-0.30.2/src/ne_socket.c unxmaccsim.debug/neon-0.30.2/src/ne_socket.c
+--- neon-0.30.2/src/ne_socket.c	2019-06-20 16:38:38.000000000 +0900
++++ unxmaccsim.debug/neon-0.30.2/src/ne_socket.c	2019-06-20 16:53:18.000000000 +0900
+@@ -573,6 +573,8 @@
+         ret = total;
+     
+     ne_free(wasvector);
++#elif !defined(HAVE_SYS_UIO_h)
++    ret = write(sock->fd, vector->base, (vector->len > count ? count : vector->len));
+ #else
+     const struct iovec *vec = (const struct iovec *) vector;
+ 

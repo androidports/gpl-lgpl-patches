@@ -1,0 +1,49 @@
+diff -r -u gpgme.orig/lang/cpp/src/engineinfo.h gpgme/lang/cpp/src/engineinfo.h
+--- gpgme-1.8.0/lang/cpp/src/engineinfo.h	2017-11-01 19:04:06.000000000 +0900
++++ workdir/gpgme-1.8.0/lang/cpp/src/engineinfo.h	2017-11-01 19:04:58.000000000 +0900
+@@ -50,7 +50,11 @@
+         Version(const std::string& version)
+         {
+             if (version.empty() ||
++#ifdef __ANDROID__
++                sscanf(version.c_str(), "%d.%d.%d", &major, &minor, &patch) != 3) {
++#else
+                 std::sscanf(version.c_str(), "%d.%d.%d", &major, &minor, &patch) != 3) {
++#endif
+                 major = 0;
+                 minor = 0;
+                 patch = 0;
+@@ -60,7 +64,11 @@
+         Version(const char *version)
+         {
+             if (!version ||
++#ifdef __ANDROID__
++                sscanf(version, "%d.%d.%d", &major, &minor, &patch) != 3) {
++#else
+                 std::sscanf(version, "%d.%d.%d", &major, &minor, &patch) != 3) {
++#endif
+                 major = 0;
+                 minor = 0;
+                 patch = 0;
+diff -r -u gpgme-1.8.0/lang/cpp/src/data.cpp workdir/gpgme-1.8.0/lang/cpp/src/data.cpp
+--- gpgme-1.8.0/lang/cpp/src/data.cpp	2017-11-22 11:47:35.000000000 +0900
++++ workdir/gpgme-1.8.0/lang/cpp/src/data.cpp	2017-11-22 11:47:47.000000000 +0900
+@@ -34,6 +34,18 @@
+ #include <iostream>
+ #endif
+ 
++#if defined(ANDROID) || defined(ANDROID_PORTS)
++namespace std
++{
++template <typename T> std::string to_string(const T& rNumber)
++{
++    size_t n = sizeof(T);
++    std::string str(n, rNumber);
++    return str;
++}
++}
++#endif
++
+ GpgME::Data::Private::~Private()
+ {
+     if (data) {

@@ -1,0 +1,24 @@
+diff -r -u libgpg-error-1.26/src/syscfg/lock-obj-pub.arm-unknown-linux-androideabi.h workdir/libgpg-error-1.26/src/syscfg/lock-obj-pub.arm-unknown-linux-androideabi.h
+--- libgpg-error-1.26/src/syscfg/lock-obj-pub.arm-unknown-linux-androideabi.h	2017-11-20 10:17:56.000000000 +0900
++++ workdir/libgpg-error-1.26/src/syscfg/lock-obj-pub.arm-unknown-linux-androideabi.h	2017-11-20 10:22:53.000000000 +0900
+@@ -5,14 +5,20 @@
+ typedef struct
+ {
+   long _vers;
++#if USE_POSIX_THREADS
+   union {
+     volatile char _priv[4];
+     long _x_align;
+     long *_xp_align;
+   } u;
++#endif
+ } gpgrt_lock_t;
+ 
++#if USE_POSIX_THREADS
+ #define GPGRT_LOCK_INITIALIZER {1,{{0,0,0,0}}}
++#else
++#define GPGRT_LOCK_INITIALIZER {-1}
++#endif
+ ##
+ ## Local Variables:
+ ## mode: c

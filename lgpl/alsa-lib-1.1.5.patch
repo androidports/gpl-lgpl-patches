@@ -1,0 +1,62 @@
+Only in workdir/alsa-lib-1.1.5/include: alsa
+diff -u -r alsa-lib-1.1.5/src/conf.c workdir/alsa-lib-1.1.5/src/conf.c
+--- alsa-lib-1.1.5/src/conf.c	2017-11-29 16:16:11.000000000 +0900
++++ workdir/alsa-lib-1.1.5/src/conf.c	2017-11-29 16:16:56.000000000 +0900
+@@ -3736,7 +3736,7 @@
+ 			int n;
+ 
+ #ifndef DOC_HIDDEN
+-#if defined(_GNU_SOURCE) && !defined(__NetBSD__) && !defined(__FreeBSD__) && !defined(__sun)
++#if defined(_GNU_SOURCE) && !defined(__NetBSD__) && !defined(__FreeBSD__) && !defined(__sun) && !defined(ANDROID)
+ #define SORTFUNC	versionsort
+ #else
+ #define SORTFUNC	alphasort
+Only in workdir/alsa-lib-1.1.5/include: alsa
+diff -r -u alsa-lib-1.1.5/src/ucm/parser.c workdir/alsa-lib-1.1.5/src/ucm/parser.c
+--- alsa-lib-1.1.5/src/ucm/parser.c	2017-11-29 16:28:17.000000000 +0900
++++ workdir/alsa-lib-1.1.5/src/ucm/parser.c	2017-11-29 16:29:20.000000000 +0900
+@@ -1528,7 +1528,7 @@
+ 			 snd_config_topdir());
+ 	filename[MAX_FILE-1] = '\0';
+ 
+-#if defined(_GNU_SOURCE) && !defined(__NetBSD__) && !defined(__FreeBSD__) && !defined(__sun)
++#if defined(_GNU_SOURCE) && !defined(__NetBSD__) && !defined(__FreeBSD__) && !defined(__sun) && !defined(ANDROID)
+ #define SORTFUNC	versionsort
+ #else
+ #define SORTFUNC	alphasort
+Only in workdir/alsa-lib-1.1.5/include: alsa
+diff -r -u alsa-lib-1.1.5/src/pcm/pcm_dmix.c workdir/alsa-lib-1.1.5/src/pcm/pcm_dmix.c
+--- alsa-lib-1.1.5/src/pcm/pcm_dmix.c	2017-12-04 11:23:35.000000000 +0900
++++ workdir/alsa-lib-1.1.5/src/pcm/pcm_dmix.c	2017-12-04 11:24:06.000000000 +0900
+@@ -44,6 +44,9 @@
+ #include <sys/un.h>
+ #include <sys/mman.h>
+ #include "pcm_direct.h"
++#ifdef ANDROID
++#include <linux/shm.h>
++#endif
+ 
+ #ifndef PIC
+ /* entry for static linking */
+Only in workdir/alsa-lib-1.1.5/include: alsa
+diff -r -u alsa-lib-1.1.5/src/pcm/pcm_direct.c workdir/alsa-lib-1.1.5/src/pcm/pcm_direct.c
+--- alsa-lib-1.1.5/src/pcm/pcm_direct.c	2017-12-04 11:38:00.000000000 +0900
++++ workdir/alsa-lib-1.1.5/src/pcm/pcm_direct.c	2017-12-04 11:38:53.000000000 +0900
+@@ -40,6 +40,9 @@
+ #include <sys/mman.h>
+ #include "pcm_direct.h"
+ 
++#ifdef ANDROID
++#include <linux/shm.h>
++#else
+ /*
+  *
+  */
+@@ -50,6 +53,7 @@
+ 	unsigned short  *array;  /* Array for GETALL, SETALL */
+ 	struct seminfo  *__buf;  /* Buffer for IPC_INFO (Linux specific) */
+ };
++#endif
+  
+ /*
+  * FIXME:

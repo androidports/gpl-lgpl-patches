@@ -1,0 +1,353 @@
+Only in workdir/icedtea-web-1.7/: autom4te.cache
+diff -u -r icedtea-web-1.7/configure workdir/icedtea-web-1.7/configure
+--- icedtea-web-1.7/configure	2017-12-06 16:24:57.000000000 +0900
++++ workdir/icedtea-web-1.7/configure	2017-12-06 16:27:02.000000000 +0900
+@@ -8535,6 +8535,7 @@
+ SUN_NET_WWW_PROTOCOL_JAR_URLJARFILECALLBACK=${it_cv_SUN_NET_WWW_PROTOCOL_JAR_URLJARFILECALLBACK}
+ 
+ 
++if test $cross_compiling != yes; then
+ if test "x$build_linux" = xyes ; then
+ 
+ 
+@@ -8559,7 +8560,7 @@
+ mkdir -p tmp.$$/$(dirname $CLASS)
+ cd tmp.$$
+ cat << \EOF > $CLASS
+-/* [#]line 8562 "configure" */
++/* [#]line 8563 "configure" */
+ package some.pkg;
+ 
+ import sun.awt.X11.XEmbeddedFrame;
+@@ -8622,7 +8623,7 @@
+ mkdir -p tmp.$$/$(dirname $CLASS)
+ cd tmp.$$
+ cat << \EOF > $CLASS
+-/* [#]line 8625 "configure" */
++/* [#]line 8626 "configure" */
+ package some.pkg;
+ 
+ import sun.awt.windows.WEmbeddedFrame;
+@@ -8661,6 +8662,7 @@
+ 
+ 
+ fi
++fi
+ 
+ 
+ 
+@@ -8684,7 +8686,7 @@
+ mkdir -p tmp.$$/$(dirname $CLASS)
+ cd tmp.$$
+ cat << \EOF > $CLASS
+-/* [#]line 8687 "configure" */
++/* [#]line 8689 "configure" */
+ package some.pkg;
+ 
+ import com.sun.jndi.toolkit.url.UrlUtil;
+@@ -8745,7 +8747,7 @@
+ mkdir -p tmp.$$/$(dirname $CLASS)
+ cd tmp.$$
+ cat << \EOF > $CLASS
+-/* [#]line 8748 "configure" */
++/* [#]line 8750 "configure" */
+ package some.pkg;
+ 
+ import sun.net.www.protocol.http.Handler;
+@@ -8806,7 +8808,7 @@
+ mkdir -p tmp.$$/$(dirname $CLASS)
+ cd tmp.$$
+ cat << \EOF > $CLASS
+-/* [#]line 8809 "configure" */
++/* [#]line 8811 "configure" */
+ package sun.applet;
+ 
+ import sun.applet.AppletImageRef;
+@@ -8859,7 +8861,7 @@
+ mkdir -p tmp.$$
+ cd tmp.$$
+ cat << \EOF > $CLASS
+-/* [#]line 8862 "configure" */
++/* [#]line 8864 "configure" */
+ import java.lang.reflect.*;
+ 
+ public class TestAppletViewer
+diff -u -r icedtea-web-1.7/configure.ac workdir/icedtea-web-1.7/configure.ac
+--- icedtea-web-1.7/configure.ac	2017-12-06 16:24:57.000000000 +0900
++++ workdir/icedtea-web-1.7/configure.ac	2017-12-06 16:26:55.000000000 +0900
+@@ -113,12 +113,14 @@
+ IT_CHECK_FOR_CLASS(COM_SUN_NET_SSL_INTERNAL_SSL_X509EXTENDEDTRUSTMANAGER, [com.sun.net.ssl.internal.ssl.X509ExtendedTrustManager], [some.pkg], [$JAVA_BASE])
+ IT_CHECK_FOR_CLASS(SUN_NET_WWW_PROTOCOL_JAR_URLJARFILE, [sun.net.www.protocol.jar.URLJarFile], [some.pkg], [$JAVA_BASE])
+ IT_CHECK_FOR_CLASS(SUN_NET_WWW_PROTOCOL_JAR_URLJARFILECALLBACK, [sun.net.www.protocol.jar.URLJarFileCallBack], [some.pkg], [$JAVA_BASE])
++if test $cross_compiling != yes; then
+ if test "x$build_linux" = xyes ; then
+   IT_CHECK_FOR_CLASS(SUN_AWT_X11_XEMBEDDEDFRAME, [sun.awt.X11.XEmbeddedFrame], [some.pkg], [$JAVA_DESKTOP])
+ fi
+ if test "x$build_windows" = xyes ; then
+   IT_CHECK_FOR_CLASS(SUN_AWT_WEMBEDDEDFRAME, [sun.awt.windows.WEmbeddedFrame], [some.pkg], [$JAVA_DESKTOP])
+ fi
++fi
+ IT_CHECK_FOR_CLASS(COM_SUN_JNDI_TOOLKIT_URL_URLUTIL, [com.sun.jndi.toolkit.url.UrlUtil], [some.pkg], [$JAVA_NAMING])
+ IT_CHECK_FOR_CLASS(SUN_NET_WWW_PROTOCOL_HTTP_HANDLER, [sun.net.www.protocol.http.Handler], [some.pkg], [$JAVA_BASE])
+ IT_CHECK_FOR_CLASS(SUN_APPLET_APPLETIMAGEREF, [sun.applet.AppletImageRef], [sun.applet], [$JAVA_DESKTOP])
+Only in icedtea-web-1.7/: confdefs.h
+diff -r -u icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc workdir/icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc
+--- icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc	2017-12-06 16:51:16.000000000 +0900
++++ workdir/icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc	2017-12-06 16:46:20.000000000 +0900
+@@ -259,6 +259,11 @@
+ int plugin_debug_suspend = (getenv("ICEDTEAPLUGIN_DEBUG") != NULL) &&
+         (strcmp(getenv("ICEDTEAPLUGIN_DEBUG"), "suspend") == 0);
+ 
++#ifdef ANDROID
++void thread_exit_handler(int sig) {
++  pthread_exit(0);
++}
++#endif
+ 
+ #ifdef LEGACY_GLIB
+ // Returns key from first item stored in hashtable
+@@ -2224,6 +2229,17 @@
+ 
+   PLUGIN_DEBUG ("NP_Initialize return\n");
+ 
++#ifdef ANDROID
++  {
++    struct sigaction actions;
++    memset(&actions, 0, sizeof(actions));
++    sigemptyset(&actions.sa_mask);
++    actions.sa_flags = 0;
++    actions.sa_handler = thread_exit_handler;
++    sigaction(SIGUSR1,&actions,NULL);
++  }
++#endif
++
+   return NPERR_NO_ERROR;
+ }
+ 
+@@ -2375,9 +2391,15 @@
+ 
+   initialized = false;
+ 
++#ifdef ANDROID
++  pthread_kill(plugin_request_processor_thread1, SIGUSR1);
++  pthread_kill(plugin_request_processor_thread2, SIGUSR1);
++  pthread_kill(plugin_request_processor_thread3, SIGUSR1);
++#else
+   pthread_cancel(plugin_request_processor_thread1);
+   pthread_cancel(plugin_request_processor_thread2);
+   pthread_cancel(plugin_request_processor_thread3);
++#endif
+ 
+   pthread_join(plugin_request_processor_thread1, NULL);
+   pthread_join(plugin_request_processor_thread2, NULL);
+diff -u -r icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc workdir/icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc
+--- icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc	2017-12-06 17:08:10.000000000 +0900
++++ workdir/icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc	2017-12-06 17:08:31.000000000 +0900
+@@ -1580,7 +1580,7 @@
+ 
+ 
+ 
+-const char *knownExports[]{
++const char *knownExports[] = {
+     "java.desktop/sun.awt=ALL-UNNAMED,java.desktop",
+     "java.base/sun.security.provider=ALL-UNNAMED,java.desktop",
+     "java.base/sun.security.util=ALL-UNNAMED,java.desktop",
+diff -r -u icedtea-web-1.7/plugin/icedteanp/IcedTeaPluginRequestProcessor.cc workdir/icedtea-web-1.7/plugin/icedteanp/IcedTeaPluginRequestProcessor.cc
+--- icedtea-web-1.7/plugin/icedteanp/IcedTeaPluginRequestProcessor.cc	2017-12-06 17:37:20.000000000 +0900
++++ workdir/icedtea-web-1.7/plugin/icedteanp/IcedTeaPluginRequestProcessor.cc	2017-12-06 17:37:35.000000000 +0900
+@@ -734,7 +734,9 @@
+ 
+         message_parts = NULL;
+ 
++#ifndef ANDROID
+ 	pthread_testcancel();
++#endif
+     }
+ 
+     pthread_cleanup_pop(1);
+diff -r -u icedtea-web-1.7/Makefile.am workdir/icedtea-web-1.7/Makefile.am
+--- icedtea-web-1.7/Makefile.am	2017-12-06 20:38:25.000000000 +0900
++++ workdir/icedtea-web-1.7/Makefile.am	2017-12-06 20:40:05.000000000 +0900
+@@ -12,7 +12,7 @@
+ $(subst $(SPACE),$(CLASSPATH_SEPARATOR),$(strip $1))
+ endef
+ define composeclasspath
+-$(if $(call joinsegments,$1),-classpath "$(call joinsegments,$1)",)
++$(if $(call joinsegments,$1 $(ICEDTEA_WEB_CLASSPATH)),-classpath "$(call joinsegments,$1 $(ICEDTEA_WEB_CLASSPATH))",)
+ endef
+ 
+ # Source directories
+diff -r -u icedtea-web-1.7/Makefile.am workdir/icedtea-web-1.7/Makefile.am
+--- icedtea-web-1.7/Makefile.am	2017-12-08 12:32:16.000000000 +0900
++++ workdir/icedtea-web-1.7/Makefile.am	2017-12-08 12:32:49.000000000 +0900
+@@ -504,6 +504,7 @@
+ 	  $(PLUGIN_OBJECTS) \
+ 	  $(GLIB_LIBS) \
+ 	  $(MOZILLA_LIBS) \
++	  $(LIBS) \
+ 	  -shared -o $@
+ 
+ # Start of CPP Unit test targets
+diff -r -u icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc workdir/icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc
+--- icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc	2017-12-08 18:39:26.000000000 +0900
++++ workdir/icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc	2017-12-08 18:40:52.000000000 +0900
+@@ -2124,7 +2124,11 @@
+ // this function, then it is evident that NP_Initialize has already
+ // been called. There is no need to call this function more than once and
+ // this workaround avoids any duplicate calls.
++#ifdef ANDROID
++extern "C" __attribute__ ((visibility ("default")))
++#else
+ __attribute__ ((visibility ("default")))
++#endif
+ NPError
+ NP_Initialize (NPNetscapeFuncs* browserTable, NPPluginFuncs* pluginTable)
+ {
+@@ -2245,7 +2249,11 @@
+ 
+ // Returns a string describing the MIME type that this plugin
+ // handles.
++#ifdef ANDROID
++extern "C" __attribute__ ((visibility ("default")))
++#else
+ __attribute__ ((visibility ("default")))
++#endif
+ #ifdef LEGACY_XULRUNNERAPI
+   char* 
+ #else
+@@ -2263,7 +2271,11 @@
+ 
+ // Returns a value relevant to the plugin as a whole.  The browser
+ // calls this function to obtain information about the plugin.
++#ifdef ANDROID
++extern "C" __attribute__ ((visibility ("default")))
++#else
+ __attribute__ ((visibility ("default")))
++#endif
+ NPError
+ NP_GetValue (void* future, NPPVariable variable, void* value)
+ {
+@@ -2297,7 +2309,11 @@
+ 
+ // Shuts down the plugin.  Called after the last plugin instance is
+ // destroyed.
++#ifdef ANDROID
++extern "C" __attribute__ ((visibility ("default")))
++#else
+ __attribute__ ((visibility ("default")))
++#endif
+ NPError
+ NP_Shutdown (void)
+ {
+diff -r -u icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc workdir/icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc
+--- icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc	2017-12-11 11:47:25.000000000 +0900
++++ workdir/icedtea-web-1.7/plugin/icedteanp/IcedTeaNPPlugin.cc	2017-12-11 11:52:15.000000000 +0900
+@@ -1618,6 +1618,11 @@
+     command_line.push_back(*jvm_args->at(i));
+   }
+    
++#ifdef ANDROID
++  if (getenv("LAUNCHER_BOOTCLASSPATH"))
++    command_line.push_back(getenv("LAUNCHER_BOOTCLASSPATH"));
++  else
++#endif
+   command_line.push_back(PLUGIN_BOOTCLASSPATH":"+get_plugin_nashorn_jar());
+   if (javaVersion < 9 ) {
+     // for jdk8 set the classpath to avoid using the default (cwd).
+@@ -1627,8 +1632,18 @@
+     command_line.push_back("-classpath");
+     command_line.push_back(get_plugin_jfx_jar());
+     command_line.push_back("--patch-module");
++#ifdef ANDROID
++    if (getenv("PATCH_MODULE_JAVA_DESKTOP"))
++      command_line.push_back(getenv("PATCH_MODULE_JAVA_DESKTOP"));
++    else
++#endif
+     command_line.push_back("java.desktop="PLUGIN_JAR":"NETX_JAR);
+     command_line.push_back("--patch-module");
++#ifdef ANDROID
++    if (getenv("PATCH_MODULE_JAVA_JSOBJECT"))
++      command_line.push_back(getenv("PATCH_MODULE_JAVA_JSOBJECT"));
++    else
++#endif
+     command_line.push_back("jdk.jsobject="JSOBJECT_JAR);
+     command_line.push_back("--add-reads");
+     command_line.push_back("java.base=ALL-UNNAMED,java.desktop");
+diff -r -u icedtea-web-1.7/Makefile.am workdir/icedtea-web-1.7/Makefile.am
+--- icedtea-web-1.7/Makefile.am	2017-12-27 09:52:30.000000000 +0900
++++ workdir/icedtea-web-1.7/Makefile.am	2017-12-27 09:53:14.000000000 +0900
+@@ -653,10 +653,10 @@
+ 	find $(NETX_SRCDIR) -name '*.java' | sort > $@ ; \
+ 	for src in $(NETX_EXCLUDE_SRCS) ; \
+ 	do \
+-	  sed -i "/$${src}/ d" $@ ; \
++	  gsed -i "/$${src}/ d" $@ ; \
+ 	done
+ if !WITH_RHINO
+-	sed -i '/RhinoBasedPacEvaluator/ d' $@
++	gsed -i '/RhinoBasedPacEvaluator/ d' $@
+ endif
+ 
+ # if 'sed' will be missing on machine, use old IFS hack as on other places
+diff -r -u icedtea-web-1.7/Makefile.in workdir/icedtea-web-1.7/Makefile.in
+--- icedtea-web-1.7/Makefile.in	2017-12-27 09:52:30.000000000 +0900
++++ workdir/icedtea-web-1.7/Makefile.in	2017-12-27 09:53:27.000000000 +0900
+@@ -1241,9 +1241,9 @@
+ 	find $(NETX_SRCDIR) -name '*.java' | sort > $@ ; \
+ 	for src in $(NETX_EXCLUDE_SRCS) ; \
+ 	do \
+-	  sed -i "/$${src}/ d" $@ ; \
++	  gsed -i "/$${src}/ d" $@ ; \
+ 	done
+-@WITH_RHINO_FALSE@	sed -i '/RhinoBasedPacEvaluator/ d' $@
++@WITH_RHINO_FALSE@	gsed -i '/RhinoBasedPacEvaluator/ d' $@
+ 
+ # if 'sed' will be missing on machine, use old IFS hack as on other places
+ # the 'sed' cycles is changing some custom version like 1.6.2 fedora23.4 to simple 1.6
+diff -r -u icedtea-web-1.7/html-gen.sh workdir/icedtea-web-1.7/html-gen.sh
+--- icedtea-web-1.7/html-gen.sh	2017-12-27 09:52:30.000000000 +0900
++++ workdir/icedtea-web-1.7/html-gen.sh	2017-12-27 09:53:06.000000000 +0900
+@@ -88,14 +88,14 @@
+ for FILE in NEWS AUTHORS COPYING ChangeLog
+ do
+     print_debug "Processing $FILE..."
+-    sed -i -r 's/\t/    /g' "./$FILE" # Convert tabs into four spaces
+-    sed -i -r 's/\&/\&amp;/g' "./$FILE" # "&" -> "&amp;"
+-    sed -i -r 's/  /\&ensp;\&ensp;/g' "./$FILE" # Double-spaces into HTML whitespace for format preservation
+-    sed -i -r 's/</\&lt;/g' "./$FILE" # "<" -> "&lt;"
+-    sed -i -r 's/>/\&gt;/g' "./$FILE" # ">" -> "&gt;"
+-    sed -i -r 's_(\&lt;)?(https?://[^ ]*)(\&gt;| |$)_\1<a href="\2">\2</a>\3_i' "./$FILE" # Create hyperlinks from http(s) URLs
+-    sed -i -r 's/\&lt;(.*@.*)\&gt;/\&lt;<a href="mailto:\1\?subject=IcedTea-Web">\1<\/a>\&gt;/i' "./$FILE" # Create mailto links from email addresses formatted as <email@example.com>
+-    sed -i -r 's/$/<br>/' "./$FILE" # "\n" -> "<br>"
++    gsed -i -r 's/\t/    /g' "./$FILE" # Convert tabs into four spaces
++    gsed -i -r 's/\&/\&amp;/g' "./$FILE" # "&" -> "&amp;"
++    gsed -i -r 's/  /\&ensp;\&ensp;/g' "./$FILE" # Double-spaces into HTML whitespace for format preservation
++    gsed -i -r 's/</\&lt;/g' "./$FILE" # "<" -> "&lt;"
++    gsed -i -r 's/>/\&gt;/g' "./$FILE" # ">" -> "&gt;"
++    gsed -i -r 's_(\&lt;)?(https?://[^ ]*)(\&gt;| |$)_\1<a href="\2">\2</a>\3_i' "./$FILE" # Create hyperlinks from http(s) URLs
++    gsed -i -r 's/\&lt;(.*@.*)\&gt;/\&lt;<a href="mailto:\1\?subject=IcedTea-Web">\1<\/a>\&gt;/i' "./$FILE" # Create mailto links from email addresses formatted as <email@example.com>
++    gsed -i -r 's/$/<br>/' "./$FILE" # "\n" -> "<br>"
+ 
+     mv "$FILE" "$FILE.html"
+     print_debug "$FILE.html finished."
+@@ -104,9 +104,9 @@
+ print_debug "Done sed subs. Starting in-place additions"
+ 
+ # Centre the column of author names in the Authors file
+-sed -i '4i <center>' AUTHORS.html
++gsed -i '4i <center>' AUTHORS.html
+ # Insert jamIcon above author names
+-sed -i '5i <br><img src="jamIcon.jpg" alt="Jam Icon" width="87" height="84"><br><br>' AUTHORS.html
++gsed -i '5i <br><img src="jamIcon.jpg" alt="Jam Icon" width="87" height="84"><br><br>' AUTHORS.html
+ echo "</center>" >> AUTHORS.html
+ 
+ if [ -n "${REPO_URL}" ]; then
+@@ -167,7 +167,7 @@
+     print_debug "$FILE finished"
+ done
+ 
+-sed -i -r 's|(\*\ .*):|<u>\1</u>:|' ChangeLog.html # Underline changed files in ChangeLog, eg "* Makefile.am:"
++gsed -i -r 's|(\*\ .*):|<u>\1</u>:|' ChangeLog.html # Underline changed files in ChangeLog, eg "* Makefile.am:"
+ 
+ end_time="$(date +%s.%N)"
+ 
