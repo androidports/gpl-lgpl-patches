@@ -28,3 +28,39 @@ diff -r -u libwpd-0.9.9/src/conv/html/HtmlDocumentGenerator.cpp unxlngr/libwpd-0
  	}
  	*m_pOutputStream << "</body>" << std::endl;
  	*m_pOutputStream << "</html>" << std::endl;
+diff -u -r workdir/libwpd-0.9.9/src/conv/raw/Makefile.in workdir/unxlngcr/libwpd-0.9.9/src/conv/raw/Makefile.in
+--- workdir/libwpd-0.9.9/src/conv/raw/Makefile.in	2025-12-01 10:39:43
++++ workdir/unxlngcr/libwpd-0.9.9/src/conv/raw/Makefile.in	2025-12-01 10:41:52
+@@ -78,7 +78,7 @@
+ POST_UNINSTALL = :
+ build_triplet = @build@
+ host_triplet = @host@
+-bin_PROGRAMS = $(am__EXEEXT_1)
++bin_PROGRAMS = 
+ subdir = src/conv/raw
+ DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
+ 	$(srcdir)/wpd2raw.rc.in $(top_srcdir)/depcomp
+diff -u -r workdir/libwpd-0.9.9/src/conv/html/Makefile.in workdir/unxlngcr/libwpd-0.9.9/src/conv/html/Makefile.in
+--- workdir/libwpd-0.9.9/src/conv/html/Makefile.in	2025-12-01 10:44:22
++++ workdir/unxlngcr/libwpd-0.9.9/src/conv/html/Makefile.in	2025-12-01 10:44:54
+@@ -78,7 +78,7 @@
+ POST_UNINSTALL = :
+ build_triplet = @build@
+ host_triplet = @host@
+-bin_PROGRAMS = $(am__EXEEXT_1)
++bin_PROGRAMS = 
+ subdir = src/conv/html
+ DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
+ 	$(srcdir)/wpd2html.rc.in $(top_srcdir)/depcomp
+diff -u -r workdir/libwpd-0.9.9/src/conv/text/Makefile.in workdir/unxlngcr/libwpd-0.9.9/src/conv/text/Makefile.in
+--- workdir/libwpd-0.9.9/src/conv/text/Makefile.in	2025-12-01 10:46:48
++++ workdir/unxlngcr/libwpd-0.9.9/src/conv/text/Makefile.in	2025-12-01 10:47:45
+@@ -78,7 +78,7 @@
+ POST_UNINSTALL = :
+ build_triplet = @build@
+ host_triplet = @host@
+-bin_PROGRAMS = $(am__EXEEXT_1)
++bin_PROGRAMS = 
+ subdir = src/conv/text
+ DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
+ 	$(srcdir)/wpd2text.rc.in $(top_srcdir)/depcomp
